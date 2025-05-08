@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  app:
+    container_name: ai_chatbot_app  # 更改容器名稱
+    build: .
+    ports:
+      - "8082:8000"  # 使用 8082 端口避免與現有服務衝突
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=sqlite:///./chatbot.db
+      - OLLAMA_URL=http://ai_chatbot_ollama:11434/api/chat  # 更改為新的 Ollama 容器名稱
+    depends_on:
+      - ollama
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  ollama:
+    container_name: ai_chatbot_ollama  # 更改容器名稱
+    image: ollama/ollama:latest
+    volumes:
+      - ai_chatbot_ollama_data:/root/.ollama  # 更改卷名稱
+    ports:
+      - "11435:11434"  # 使用 11435 端口避免與現有 Ollama 衝突
+    restart: unless-stopped
+
+volumes:
+  ai_chatbot_ollama_data:  # 更改卷名稱
