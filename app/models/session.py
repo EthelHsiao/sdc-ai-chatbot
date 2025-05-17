@@ -6,6 +6,7 @@ from typing import Optional, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .message import Message
+    from .setting import Setting
 
 class Session(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -15,6 +16,10 @@ class Session(SQLModel, table=True):
     messages: List["Message"] = Relationship(
         back_populates="session",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"} #"delete-orphan" 表示當某個 Message 不再隸屬於任何 Session 時，自動刪除該 Message。
+    )
+    settings: List["Setting"] = Relationship(
+        back_populates="session",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
     
     @classmethod

@@ -6,7 +6,7 @@ import json
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/chat")
 
-async def generate(model: str, messages: List[Dict[str, str]], stream: bool = False):
+async def generate(model: str, messages: List[Dict[str, str]], stream: bool = False, temperature: float = 0.7):
     """
     與 Ollama API 交互以生成回應
     """
@@ -17,7 +17,10 @@ async def generate(model: str, messages: List[Dict[str, str]], stream: bool = Fa
                 json={
                     "model": model,
                     "messages": messages,
-                    "stream": stream
+                    "stream": stream,
+                    "options": {
+                        "temperature": temperature
+                    }
                 },
                 headers={
                     "Content-Type": "application/json",
