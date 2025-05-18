@@ -2,23 +2,25 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session as DBSession, select
 from app.core.database import get_session
+from app.schemas.session import SessionCreate, SessionRead
 from app.models.session import Session
 from typing import List
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
-@router.post("/", response_model=Session, status_code=201)
-def create_session(session: Session, db: DBSession = Depends(get_session)):
+@router.post("/", response_model=SessionRead, status_code=201)
+def create_session(session_data: SessionCreate, db: DBSession = Depends(get_session)):
     # 驗證標題
     try:
-        Session.validate_title(session.title)
+        Session.validate_title(session_data.title)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    
-    db.add(session)
+
+    new_session = Session(title=session_data.title)
+    db.add(new_session)
     db.commit()
-    db.refresh(session)
-    return session
+    db.refresh(new_session)
+    return new_session
 
 @router.get("/", response_model=List[Session])
 def read_sessions(

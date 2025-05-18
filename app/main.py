@@ -1,7 +1,9 @@
 # app/main.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import init_db
-from app.api import sessions, messages, chat, settings
+from app.api import sessions, messages, chat
+
 app = FastAPI(
     title="AI Web Chatbot",
     version="0.1.0",
@@ -13,11 +15,14 @@ def on_startup():
     init_db()
 
 # 掛載路由
-app.include_router(sessions.router)
-app.include_router(messages.router)
-app.include_router(chat.router)
-app.include_router(settings.router)  # 新增settings路由
+app.include_router(sessions.router, prefix="/api")
+app.include_router(messages.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
 
-@app.get("/")
-def read_root():
-    return {"message": "歡迎使用 AI Web Chatbot"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

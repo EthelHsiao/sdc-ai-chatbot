@@ -6,7 +6,7 @@ import json
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/chat")
 
-async def generate(model: str, messages: List[Dict[str, str]], stream: bool = False, temperature: float = 0.7):
+async def generate(model: str, messages: List[Dict[str, str]], stream: bool = False):
     """
     與 Ollama API 交互以生成回應
     """
@@ -17,10 +17,7 @@ async def generate(model: str, messages: List[Dict[str, str]], stream: bool = Fa
                 json={
                     "model": model,
                     "messages": messages,
-                    "stream": stream,
-                    "options": {
-                        "temperature": temperature
-                    }
+                    "stream": stream
                 },
                 headers={
                     "Content-Type": "application/json",
@@ -38,8 +35,16 @@ async def generate(model: str, messages: List[Dict[str, str]], stream: bool = Fa
                 
                 return generate_stream()
             
-            # 對於非流式回應，返回 JSON
-            return response.json()
+            # 對於非 stream 模式，仍然需要處理 NDJSON 並手動拼接
+            lines = response.text.strip().split('\n')
+            full_response = ""
+            for line in lines:
+                if line.strip():
+                    data = json.loads(line)
+                    if "message" in data and "content" in data["message"]:
+                        full_response += data["message"]["content"]
+            return {"message": {"content": full_response}}
+
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 raise ValueError(f"Model '{model}' not found")
