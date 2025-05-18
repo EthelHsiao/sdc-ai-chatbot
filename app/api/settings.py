@@ -4,6 +4,8 @@ from sqlmodel import Session as DBSession, select
 from app.core.database import get_session
 from app.models.setting import Setting
 from app.models.session import Session
+from app.models.user import User
+from app.core.auth import get_current_active_user
 from pydantic import BaseModel
 from typing import Optional
 
@@ -21,12 +23,14 @@ class SettingUpdate(BaseModel):
     temperature: Optional[float] = None
 
 @router.post("/", response_model=Setting, status_code=201)
-def create_setting(setting: SettingCreate, db: DBSession = Depends(get_session)):
+def create_setting(setting: SettingCreate, db: DBSession = Depends(get_session),current_user: User = Depends(get_current_active_user)):
     # 檢查session是否存在
     session = db.get(Session, setting.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+    # 檢查會話是否屬於當前用戶
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to modify settings for this session")
     # 檢查該session是否已有設定
     existing_setting = db.exec(
         select(Setting).where(Setting.session_id == setting.session_id)
@@ -48,12 +52,15 @@ def create_setting(setting: SettingCreate, db: DBSession = Depends(get_session))
     return new_setting
 
 @router.get("/{session_id}", response_model=Setting)
-def read_setting(session_id: int, db: DBSession = Depends(get_session)):
+def read_setting(session_id: int, db: DBSession = Depends(get_session), current_user: User = Depends(get_current_active_user)):
     # 檢查session是否存在
     session = db.get(Session, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
+    # 檢查會話是否屬於當前用戶
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access settings for this session")
     setting = db.exec(
         select(Setting).where(Setting.session_id == session_id)
     ).first()
@@ -64,12 +71,14 @@ def read_setting(session_id: int, db: DBSession = Depends(get_session)):
     return setting
 
 @router.put("/{session_id}", response_model=Setting)
-def update_setting(session_id: int, setting_update: SettingUpdate, db: DBSession = Depends(get_session)):
+def update_setting(session_id: int, setting_update: SettingUpdate, db: DBSession = Depends(get_session),current_user: User = Depends(get_current_active_user)):
     # 檢查session是否存在
     session = db.get(Session, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+    # 檢查會話是否屬於當前用戶
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update settings for this session")
     setting = db.exec(
         select(Setting).where(Setting.session_id == session_id)
     ).first()
@@ -91,12 +100,14 @@ def update_setting(session_id: int, setting_update: SettingUpdate, db: DBSession
     return setting
 
 @router.delete("/{session_id}", status_code=204)
-def delete_setting(session_id: int, db: DBSession = Depends(get_session)):
+def delete_setting(session_id: int, db: DBSession = Depends(get_session),current_user: User = Depends(get_current_active_user)):
     # 檢查session是否存在
     session = db.get(Session, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+    # 檢查會話是否屬於當前用戶
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete settings for this session")
     setting = db.exec(
         select(Setting).where(Setting.session_id == session_id)
     ).first()
