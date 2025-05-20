@@ -1,0 +1,50 @@
+.chat-container {
+  height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+.user-message {
+  background-color: #e2f7ff;
+  border-radius: 18px 18px 0 18px;
+  padding: 10px 15px;
+  margin: 5px 0;
+  max-width: 80%;
+  align-self: flex-end;
+}
+
+.bot-message {
+  background-color: #f1f1f1;
+  border-radius: 18px 18px 18px 0;
+  padding: 10px 15px;
+  margin: 5px 0;
+  max-width: 80%;
+  align-self: flex-start;
+}
+
+.loading-dots:after {
+  content: "";
+  animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+  0%,
+  20% {
+    content: "";
+  }
+  40% {
+    content: ".";
+  }
+  60% {
+    content: "..";
+  }
+  80%,
+  100% {
+    content: "...";
+  }
+}
+
+/* 側邊欄滾動條 */
+.sessions-list {
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}

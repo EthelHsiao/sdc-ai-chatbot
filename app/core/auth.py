@@ -1,11 +1,16 @@
 # app/core/auth.py
 from fastapi import Depends, HTTPException, status, Cookie
-from sqlmodel import Session as DBSession, select
+from sqlmodel import Session as DBSession
 from app.core.database import get_session
 from app.models.user import User
 from typing import Optional
+from pydantic import BaseModel
 
-# 移除 JWT 相關的代碼
+class Token(BaseModel):
+    access_token: Optional[str] = None
+    token_type: Optional[str] = None
+    user_id: int
+    username: str
 
 async def get_current_user(
     db: DBSession = Depends(get_session),

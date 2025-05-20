@@ -1,6 +1,7 @@
 # app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.core.database import init_db
 from app.api import sessions, messages, chat, settings, auth
 app = FastAPI(
@@ -26,6 +27,9 @@ app.include_router(sessions.router)
 app.include_router(messages.router)
 app.include_router(chat.router)
 app.include_router(settings.router)  # 新增settings路由
+
+# 提供靜態檔案
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 @app.get("/")
 def read_root():

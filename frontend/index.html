@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Web Chatbot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- 登入/註冊畫面 -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <div class="mb-6 text-center">
+                <h1 class="text-2xl font-bold text-gray-800">AI Web Chatbot</h1>
+                <p class="text-gray-600">請登入或註冊開始使用</p>
+            </div>
+            
+            <div class="mb-4">
+                <ul class="flex border-b">
+                    <li class="flex-1 text-center">
+                        <a id="login-tab" class="block py-2 px-4 text-blue-500 font-semibold border-b-2 border-blue-500" href="#">登入</a>
+                    </li>
+                    <li class="flex-1 text-center">
+                        <a id="register-tab" class="block py-2 px-4 text-gray-500 hover:text-blue-500" href="#">註冊</a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 登入表單 -->
+            <div id="login-form" class="block">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="login-username">
+                        用戶名
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="login-username" type="text" placeholder="請輸入用戶名">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="login-password">
+                        密碼
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="login-password" type="password" placeholder="請輸入密碼">
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="login-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="button">
+                        登入
+                    </button>
+                </div>
+                <div id="login-error" class="mt-4 text-red-500 text-center hidden"></div>
+            </div>
+            
+            <!-- 註冊表單 -->
+            <div id="register-form" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="register-username">
+                        用戶名
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="register-username" type="text" placeholder="請設定用戶名">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="register-password">
+                        密碼
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="register-password" type="password" placeholder="請設定密碼">
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="register-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="button">
+                        註冊
+                    </button>
+                </div>
+                <div id="register-error" class="mt-4 text-red-500 text-center hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主應用畫面 -->
+    <div id="app-screen" class="hidden">
+        <div class="flex h-screen bg-gray-100">
+            <!-- 側邊欄 -->
+            <div class="w-64 bg-white shadow-md">
+                <div class="p-4 border-b">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-xl font-semibold text-gray-800">對話列表</h2>
+                        <button id="new-chat-button" class="bg-blue-500 text-white p-1 rounded hover:bg-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <input id="session-search" class="w-full px-3 py-2 border rounded-md" type="text" placeholder="搜尋對話...">
+                </div>
+                
+                <div id="sessions-list" class="sessions-list p-2">
+                    <!-- 對話列表會在這裡動態添加 -->
+                </div>
+
+                <div class="mt-auto p-4 border-t">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span id="current-username" class="font-semibold text-gray-800"></span>
+                        </div>
+                        <button id="logout-button" class="text-sm text-gray-500 hover:text-red-500">登出</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主內容區域 -->
+            <div class="flex-1 flex flex-col">
+                <!-- 標題欄 -->
+                <div class="bg-white p-4 shadow-sm flex justify-between items-center">
+                    <div>
+                        <h1 id="current-session-title" class="text-xl font-semibold text-gray-800">選擇或創建一個對話</h1>
+                    </div>
+                    <div>
+                        <button id="session-settings-button" class="text-gray-500 hover:text-gray-700 mr-2 hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </button>
+                        <button id="session-delete-button" class="text-gray-500 hover:text-red-500 hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 聊天區域 -->
+                <div id="chat-container" class="chat-container flex-1 p-4 flex flex-col overflow-y-auto">
+                    <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        <p class="text-lg">選擇左側對話或創建新對話</p>
+                    </div>
+                </div>
+
+                <!-- 輸入區域 -->
+                <div class="bg-white p-4 border-t flex">
+                    <input id="message-input" class="flex-1 border rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" placeholder="請輸入訊息..." disabled>
+                    <button id="send-button" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 disabled:bg-gray-300" disabled>
+                        發送
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 創建新會話彈窗 -->
+    <div id="new-session-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-semibold mb-4">創建新對話</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="new-session-title">
+                    對話標題
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" id="new-session-title" type="text" placeholder="輸入標題 (僅限英文字母和數字，3-30字符)">
+                <p class="text-xs text-gray-500 mt-1">注意：標題只能包含英文字母和數字，長度為3-30個字符</p>
+            </div>
+            <div class="flex justify-end">
+                <button id="cancel-new-session" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2">
+                    取消
+                </button>
+                <button id="create-new-session" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    創建
+                </button>
+            </div>
+            <div id="new-session-error" class="mt-4 text-red-500 text-center hidden"></div>
+        </div>
+    </div>
+
+    <!-- 會話設置彈窗 -->
+    <div id="session-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-semibold mb-4">會話設置</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="edit-session-title">
+                    對話標題
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" id="edit-session-title" type="text" placeholder="輸入標題 (僅限英文字母和數字，3-30字符)">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="system-prompt">
+                    系統提示詞
+                </label>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 h-24" id="system-prompt" placeholder="輸入系統提示詞 (可選)"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="model-select">
+                    選擇模型
+                </label>
+                <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" id="model-select">
+                    <option value="llama2:7b">Llama 2 (7B)</option>
+                    <option value="llama2">Llama 2</option>
+                    <option value="mistral">Mistral</option>
+                    <option value="orca-mini">Orca Mini</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="temperature-slider">
+                    溫度: <span id="temperature-value">0.7</span>
+                </label>
+                <input type="range" min="0" max="2" step="0.1" value="0.7" class="w-full" id="temperature-slider">
+                <div class="flex justify-between text-xs text-gray-500">
+                    <span>更精確</span>
+                    <span>更創意</span>
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button id="cancel-settings" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2">
+                    取消
+                </button>
+                <button id="save-settings" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    儲存
+                </button>
+            </div>
+            <div id="settings-error" class="mt-4 text-red-500 text-center hidden"></div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

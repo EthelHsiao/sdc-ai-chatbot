@@ -22,6 +22,8 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat")
 async def chat(request: ChatRequest, db: DBSession = Depends(get_session),current_user: User = Depends(get_current_active_user)):
+    # 設定默認溫度值
+    temperature = 0.7  # 添加這一行，設定默認值
     # 檢查 session_id 如果提供的話
     if request.session_id is not None:
         session = db.get(Session, request.session_id)

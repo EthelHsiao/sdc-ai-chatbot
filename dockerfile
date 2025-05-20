@@ -9,7 +9,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 複製應用程式代碼
-COPY . .
+COPY app/ ./app/
+COPY frontend/ ./frontend/
 
 # 設置環境變數
 ENV PYTHONDONTWRITEBYTECODE=1
