@@ -48,6 +48,7 @@ def register(user_data: UserCreate, db: DBSession = Depends(get_session)):
     return db_user
 
 @router.post("/login", response_model=Token)
+@router.post("/login")
 def login(
     user_data: UserLogin,
     db: DBSession = Depends(get_session),
@@ -61,29 +62,19 @@ def login(
             detail="Incorrect username or password"
         )
     
-    # 創建訪問令牌
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+    # 設置 cookie
+    response.set_cookie(
+        key="user_id",
+        value=str(user.id),
+        httponly=True,
+        max_age=60 * 60 * 24 * 7,  # 7天
     )
     
-    # 設置 cookie (對瀏覽器來說)
-    if response:
-        response.set_cookie(
-            key="access_token",
-            value=f"Bearer {access_token}",
-            httponly=True,
-            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            expires=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        )
-    
     return {
-        "access_token": access_token, 
-        "token_type": "bearer",
         "user_id": user.id,
-        "username": user.username
+        "username": user.username,
+        "message": "Successfully logged in"
     }
-
 @router.post("/token", response_model=Token)
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), 
@@ -127,6 +118,6 @@ def logout(response: Response):
     response.delete_cookie(key="access_token")
     return {"message": "Successfully logged out"}
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me")
 def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
